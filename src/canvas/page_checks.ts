@@ -13,3 +13,5 @@ export const isOnSubmission = pathMatches(SITE.PATH.SUBMISSION_PAGE);
 export const isOnCanvaDocs = /canvadocs.instructure.com/.test(document.location.hostname);
 
 export const hasLeftNavigation = !isOnSpeedGrader && !isOnCanvaDocs;
+
+export const isOnAssignment = pathMatches(SITE.PATH.ASSIGNMENT_PAGE);

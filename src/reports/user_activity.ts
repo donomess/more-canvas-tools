@@ -203,6 +203,7 @@ function addMeter(d: any, meter: string): any {
         };
     }
     return d.progress(updateStatus(meter)).done(updateStatus(meter));
+    //Takes a promise and updates information/renders information progressively.
 }
 
 export function loadUserActivityReport() {

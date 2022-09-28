@@ -1,7 +1,8 @@
 import { ALWAYS, DOMCONTENTLOADED, LOAD } from "userscripter/lib/environment";
 import { Operation, operation } from "userscripter/lib/operations";
-import { isOnPeoplePage, isOnSpeedGrader, hasLeftNavigation } from "./canvas/page_checks";
+import { isOnPeoplePage, isOnSpeedGrader, hasLeftNavigation, isOnAssignment } from "./canvas/page_checks";
 import { loadUserActivityReport } from "./reports/user_activity";
+import { loadExtenderButton } from "./utilities/assignment_extender";
 import { injectGraderLabel } from "./utilities/grader_label";
 import { injectLimitEnrollmentButton } from "./utilities/limit_enrollment";
 import { injectSpreadGradeButton } from "./utilities/spread_grade";
@@ -51,6 +52,17 @@ const OPERATIONS: ReadonlyArray<Operation<any>> = [
             injectGraderLabel(e.gradeBox);
         },
         deferUntil: LOAD
+    }),
+    operation({
+        description: "Add assignment extender button",
+        condition: () => isOnAssignment,
+        dependencies: {
+            sideBarList: "#page-action-list"
+        },
+        action: () => {
+            loadExtenderButton()
+        },
+        deferUntil: DOMCONTENTLOADED
     })
 ];
 
