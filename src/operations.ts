@@ -57,7 +57,7 @@ const OPERATIONS: ReadonlyArray<Operation<any>> = [
         description: "Add assignment extender button",
         condition: () => isOnAssignment,
         dependencies: {
-            sideBarList: "#page-action-list"
+            sideBarList: "#sidebar_content"
         },
         action: () => {
             loadExtenderButton()
