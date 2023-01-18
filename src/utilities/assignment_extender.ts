@@ -62,7 +62,7 @@ const STUDENT_AND_CURRENT_DEADLINE = `
 <div class="select-student">
     <button class="dropdown" id="select">Select Student</button>Selected student: <span id="selected-student"></span>
     <div id="actual-dropdown" class="student-list">
-        <p>test</p>
+        <option>test</option>
     </div>
 </div>
 
@@ -87,8 +87,21 @@ const ASSIGNMENT_EXTENDER_DIALOGUE = `
 
 const SELECT_NEW_DATE = `
 <div class="select-extension-date">
-    Extend assignment to: <input type="date">  at:  <input type="time">
+    Extend assignment to: <input id="new-date" type="date" onchange="updateNewDate()">  at:  <input id="new-time" type="time" onchange="updateNewTime()">
 </div>
+<script>
+function updateNewDate(){
+    var newdate = document.getElementById("new-date");
+    console.log("New date: " + newdate);
+    return newdate;
+}
+
+function updateNewTime(){
+    var newtime = document.getElementById("new-time");
+    console.log("New time: " + newtime);
+    return newtime;
+}
+</script>
 `;
 
 export function loadExtenderButton(){
@@ -98,35 +111,20 @@ export function loadExtenderButton(){
         startDialog("Easy Assignment Extender", ASSIGNMENT_EXTENDER_DIALOGUE);
         $("#select-student-and-current-deadline").html(STUDENT_AND_CURRENT_DEADLINE);
         $("#select-new-date").html(SELECT_NEW_DATE);
-        addMeter(getAll($.get, "users", { 'enrollment_type[]': 'student' }), "Students")
+        getStudents();
     });
 }
 
 function updateStatus(message: string){
     $("#assignment-extender-status").html(message);
+    var test = "blah"
 }
 
-// async function getStudents() : User[]{
-//     var studentList: User[] = [];
-//     studentList = (getAll($.get, "users", { 'enrollment_type[]': 'student' }))
-// }
-
-function addMeter(d: any, meter: string): any {
-    let meterObj = $(`<span id="assignment-extender-status${meter}">${meter}</span>`);
-    $("#assignment-extender-status").append(meterObj);
-    function updateStatus(meter: string) {
-        return (soFar: any, sizes: ParseSizes) => {
-            if (sizes === undefined || sizes.last === sizes.current) {
-                $("#assignment-extender-status" + meter).remove();
-            } else if (sizes.last === undefined) {
-                $("#assignment-extender-status" + meter).html(meter + `<span class='badge'>${soFar.length} so far</span>`);
-            } else {
-                $("#assignment-extender-status" + meter).html(meter + `<span class='badge'>${sizes.last - sizes.current}</span>`);
-            }
-        };
+async function getStudents(){
+    const studentList = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
+    for (const student of studentList){
+        $("#actual-dropdown").html(`<p>${student}</p>`);
+        console.log("attempted to add student to list");
     }
-    console.log("added student")
-    return d.progress(updateStatus(meter)).done(updateStatus(meter));
-    //Takes a promise and updates information/renders information progressively.
+    //console.log("This is the result of the getAll: " + something);
 }
-
