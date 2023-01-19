@@ -3,6 +3,7 @@ import {
     getAll, makeLastWeek, ParseSizes, getAllBatched, CanvasRequestOptions
 } from "../canvas/settings";
 import {User, Assignment, SubmissionGroup, Submission, WorkflowState} from "../canvas/interfaces";
+import { get } from "jquery";
 
 const ASSIGNMENT_EXTENDER_BUTTON = `
 <li>
@@ -60,10 +61,10 @@ const STUDENT_AND_CURRENT_DEADLINE = `
 </style>
 
 <div class="select-student">
-    <button class="dropdown" id="select">Select Student</button>Selected student: <span id="selected-student"></span>
-    <div id="actual-dropdown" class="student-list">
-        <option>test</option>
-    </div>
+    <button class="dropdown" id="select">Select Student</button><p>&nbsp</p>
+    <select id="actual-dropdown" class="student-list">
+    </select>
+    Selected student: <span id="selected-student"></span>
 </div>
 
 <div class="current-deadline">
@@ -74,6 +75,11 @@ function listStudentsButton(){
     document.getElementById("actual-dropdown")?.classList.toggle("show");
 }
 document.getElementById("select").addEventListener("click", listStudentsButton, false); 
+function updateSelected(){
+    let select = document.getElementById("actual-dropdown");
+    let seluser = select.options[select.selectedIndex].value;
+    $("#selected-student").html(seluser);
+}
 </script>
 `;
 
@@ -91,13 +97,13 @@ const SELECT_NEW_DATE = `
 </div>
 <script>
 function updateNewDate(){
-    var newdate = document.getElementById("new-date");
+    let newdate = document.getElementById("new-date");
     console.log("New date: " + newdate);
     return newdate;
 }
 
 function updateNewTime(){
-    var newtime = document.getElementById("new-time");
+    let newtime = document.getElementById("new-time");
     console.log("New time: " + newtime);
     return newtime;
 }
@@ -120,11 +126,23 @@ function updateStatus(message: string){
     var test = "blah"
 }
 
+// function getCurrentDue(){
+//     let dueDate= get(document.location.pathname/due_at)
+// }
+
 async function getStudents(){
-    const studentList = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
-    for (const student of studentList){
-        $("#actual-dropdown").html(`<p>${student}</p>`);
-        console.log("attempted to add student to list");
-    }
-    //console.log("This is the result of the getAll: " + something);
+    const studentList : User[] = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
+    let newstudents = studentList.map((student: User) => { return{ student : student, options: {"student_ids[]": student.id} } });
+    for (let astudent of newstudents){
+        console.log(astudent)
+        $("#actual-dropdown").append($(`<option id=${astudent.student.id}>${astudent.student.name}<option>`))
+        console.log("trying to add " + astudent.student.name +" to list");
+    }   
+    return studentList;
+    
 }
+
+//REFERENCE THIS FOR FINDING ASSIGNMENT DUE DATE
+// const submission: Submission = await $.get(`${getBaseCourseUrl()}/assignments/${speedGraderInfo.assignmentId}/submissions/${studentId}`, {
+//     "include[]": "user,visibility,submission_comments,rubric_assessment,full_rubric_assessment"
+// })
