@@ -36,6 +36,10 @@ export function getBaseCourseUrlNoApi(): string {
     return getBaseUrl() + "/courses/" + getCourseId();
 }
 
+export function getAssignmentID(): number{
+    return parseInt((window as any).ENV.assignment_id, 10);
+}
+
 export function getSpeedGraderInfo(): SpeedGraderInfo {
     return {
         assignmentId: parseInt((window as any).ENV.assignment_id, 10),

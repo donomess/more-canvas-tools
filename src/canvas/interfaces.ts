@@ -9,6 +9,14 @@ export type Assignment = {
     id: number,
     published: boolean;
     rubric: RubricCriterion[];
+    due_at: String,
+    lock_at: String
+}
+
+export type AssignmentOverride = {
+    id : number,
+    due_at: Date,
+    lock_at: Date
 }
 
 export enum WorkflowState {
