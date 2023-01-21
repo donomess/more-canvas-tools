@@ -9,7 +9,7 @@ declare global {
 export interface CanvasEnv {
     context_asset_string: string;
     DEEP_LINKING_POST_MESSAGE_ORIGIN: string;
-    assignment_id: string;
+    ASSIGNMENT_ID: string;
     assignment_title: string;
 }
 export function getCourse(): string {
@@ -18,6 +18,10 @@ export function getCourse(): string {
 
 export function getCourseId(): number {
     return parseInt(getCourse().split("_")[1], 10);
+}
+
+export function getAssignmentId(): string {
+    return (window as any).ENV.ASSIGNMENT_ID;
 }
 
 export function getBaseUrl(): string {
@@ -32,12 +36,12 @@ export function getBaseCourseUrl(): string {
     return getBaseApiUrl() + "courses/" + getCourseId();
 }
 
-export function getBaseCourseUrlNoApi(): string {
-    return getBaseUrl() + "/courses/" + getCourseId();
+export function getBaseAssignmentUrl(): string{
+    return getBaseApiUrl() + "courses/" + getCourseId() + "/assignments/" + getAssignmentId();
 }
 
-export function getAssignmentID(): number{
-    return parseInt((window as any).ENV.assignment_id, 10);
+export function getBaseCourseUrlNoApi(): string {
+    return getBaseUrl() + "/courses/" + getCourseId();
 }
 
 export function getSpeedGraderInfo(): SpeedGraderInfo {

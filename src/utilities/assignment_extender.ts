@@ -1,5 +1,5 @@
 import { startDialog } from "~src/canvas/dialog";
-import { getAll, getBaseCourseUrl, CanvasRequestOptions, getAssignmentID} from "../canvas/settings";
+import { getAll, getBaseCourseUrl, CanvasRequestOptions, getBaseAssignmentUrl, getAssignmentId} from "../canvas/settings";
 import {User, Assignment, AssignmentOverride} from "../canvas/interfaces";
 import { extend, get } from "jquery";
 import { updateNew } from "typescript";
@@ -13,6 +13,8 @@ const ASSIGNMENT_EXTENDER_DIALOGUE = `
 <div id="show-deadline"></div>
 <br/>
 <div id="select-new-date"></div>
+<br/>
+<div id="extend-button"></div>
 `;
 
 /* Actual button you see on the assignment page. Clicking this pops up the menu. */
@@ -39,7 +41,8 @@ document.getElementById("select").addEventListener("click", listStudentsButton, 
 
 const DISPLAY_DEADLINE = `
 <div class="current-deadline">
-    Current deadline: <span id="current-deadline-for-student"></span>
+    <p>Currently due at: </p> <span id="current-due-for-student"></span>
+    <p>Currently locks at: </p> <span id="current-lock-for-student"></span>
 </div>
 `
 
@@ -49,6 +52,13 @@ const SELECT_NEW_DATE = `
 </div>
 `;
 
+const EXTEND_BUTTON = `
+<div class="extend-assignment">
+    <button id="extend" type="button">Extend Assignment!</button>
+</div>
+`;
+
+//Handler function for the extension.
 export function loadExtenderButton(){
     console.log("Success!")
     $("#sidebar_content").append($(ASSIGNMENT_EXTENDER_BUTTON));
@@ -57,17 +67,18 @@ export function loadExtenderButton(){
         $("#select-student").html(SELECT_STUDENT);
         $("#show-deadline").html(DISPLAY_DEADLINE);
         $("#select-new-date").html(SELECT_NEW_DATE);
+        $("#extend-button").html(EXTEND_BUTTON);
         getStudents();
         $("#actual-dropdown").on("change", function(){
             updateDate();
         });
         $("#new-date").on("change", function(){
             updateNewDate();
-            generateNewDueDate(updateNewDate(),updateNewTime());
+            generateNewDueDate();
         });
         $("#new-time").on("change", function(){
             updateNewTime();
-            generateNewDueDate(updateNewDate(),updateNewTime());
+            generateNewDueDate();
         });
     });
 }
@@ -76,33 +87,64 @@ function updateStatus(message: string){
     $("#assignment-extender-status").html(message);
 }
 
+// Gets all students enrolled in the current class.
 async function getStudents(){
     const studentList : User[] = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
     let newstudents = studentList.map((student: User) => { return{ student : student, options: {"student_ids[]": student.id} } });
     for (let astudent of newstudents){
-        //console.log(astudent)
         $("#actual-dropdown").append($(`<option id=${astudent.student.id}>${astudent.student.name}<option>`))
-        //console.log("trying to add " + astudent.student.name +" to list");
     }   
     return studentList;
     
 }
 
+/* Function updates the due date presented in the Assignment extension screen.
+Logic essentially takes both an assignment and overrides for the assignment
+and decides what lock date needs to be presented. */
 async function updateDate(){
-    //updates date
-    let select = document.getElementById("actual-dropdown") as HTMLSelectElement;
-    let aId = getAssignmentID();
-    console.log(aId);
     const students : User[] = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
     let newstudents = students.map((student: User) => { return{ student : student, options: {"student_ids[]": student.id} } });
-    let selid = select.options[select.selectedIndex].id;
-    for(let astudent of newstudents){
-        if(String(astudent.student.id) === selid){
-            let dueDate: Assignment = await $.get(`${getBaseCourseUrl()}/assignments/${aId}`);
-            console.log(dueDate);
+    let assignment: Assignment = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}`);
+    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
+    console.log(override);
+
+    //If there are no overrides
+    if(!override.due_at && !override.lock_at){
+        $("#current-due-for-student").html(makeReadableDue(assignment));
+        $("#current-lock-for-student").html(makeReadableLock(assignment));
+    }
+
+    //If there is an override
+    if(override.due_at || override.lock_at){
+        for(let astudent of newstudents){
+            for(let overrideStudentId of override.student_ids){
+                if(overrideStudentId === astudent.student.id){
+                    let overSplitLock = override.lock_at.split("T");
+                    let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
+                    let overSplitDue = override.due_at.split("T");
+                    let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
+                    $("#current-due-for-student").html(overReadableDue); 
+                    $("#current-lock-for-student").html(overReadableLock); 
+                }
+                else{
+                    $("#current-due-for-student").html(makeReadableDue(assignment));
+                    $("#current-lock-for-student").html(makeReadableLock(assignment));
+                }
+            }
         }
     }
-        
+}
+
+function makeReadableDue(assignment: Assignment){
+    let splitDue = assignment.due_at.split("T");
+    let readableDue = splitDue[0] + " at " +  splitDue[1].slice(0,-1);
+    return readableDue;
+}
+
+function makeReadableLock(assignment: Assignment){
+    let splitLock = assignment.lock_at.split("T");
+    let readableLock = splitLock[0] + " at " +  splitLock[1].slice(0,-1);
+    return readableLock;
 }
 
 function updateNewDate(){
@@ -115,13 +157,9 @@ function updateNewTime(){
     return newtime;
 }
 
-function generateNewDueDate(date: string, time: string){
+/* This date is formatted to be used as input for a new override for a 
+due/lock date. */
+function generateNewDueDate(){
     console.log(updateNewDate() + "T" + updateNewTime() + ":00-06:00");
     return(updateNewDate() + "T" + updateNewTime() + ":00-06:00");
 }
-
-
-//REFERENCE THIS FOR FINDING ASSIGNMENT DUE DATE
-// const submission: Submission = await $.get(`${getBaseCourseUrl()}/assignments/${speedGraderInfo.assignmentId}/submissions/${studentId}`, {
-//     "include[]": "user,visibility,submission_comments,rubric_assessment,full_rubric_assessment"
-// })

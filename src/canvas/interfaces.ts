@@ -14,9 +14,17 @@ export type Assignment = {
 }
 
 export type AssignmentOverride = {
-    id : number,
-    due_at: Date,
-    lock_at: Date
+  id: number,
+  assignment_id: number,
+  student_ids: number[],
+  group_id: number,
+  course_section_id: number,
+  title: string,
+  due_at: string,
+  all_day: boolean,
+  all_day_date: string,
+  unlock_at: string,
+  lock_at: string
 }
 
 export enum WorkflowState {
