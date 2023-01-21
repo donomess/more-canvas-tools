@@ -1,10 +1,8 @@
 import { startDialog } from "~src/canvas/dialog";
-import { getAll, getBaseCourseUrl, CanvasRequestOptions, getBaseAssignmentUrl, getAssignmentId} from "../canvas/settings";
+import { getAll, getBaseCourseUrl, getAssignmentId} from "../canvas/settings";
 import {User, Assignment, AssignmentOverride} from "../canvas/interfaces";
-import { extend, get } from "jquery";
-import { updateNew } from "typescript";
 
-
+/*Top-level DOM */
 const ASSIGNMENT_EXTENDER_DIALOGUE = `
 <div>Status: <span id="assignment-extender-status">Selecting options</span></div>
 <br/>
@@ -63,12 +61,12 @@ export function loadExtenderButton(){
     console.log("Success!")
     $("#sidebar_content").append($(ASSIGNMENT_EXTENDER_BUTTON));
     $("#assgn-extend-load").click(() => {
+        getStudents();
         startDialog("Easy Assignment Extender", ASSIGNMENT_EXTENDER_DIALOGUE);
         $("#select-student").html(SELECT_STUDENT);
         $("#show-deadline").html(DISPLAY_DEADLINE);
         $("#select-new-date").html(SELECT_NEW_DATE);
         $("#extend-button").html(EXTEND_BUTTON);
-        getStudents();
         $("#actual-dropdown").on("change", function(){
             updateDate();
         });
@@ -119,12 +117,8 @@ async function updateDate(){
         for(let astudent of newstudents){
             for(let overrideStudentId of override.student_ids){
                 if(overrideStudentId === astudent.student.id){
-                    let overSplitLock = override.lock_at.split("T");
-                    let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
-                    let overSplitDue = override.due_at.split("T");
-                    let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
-                    $("#current-due-for-student").html(overReadableDue); 
-                    $("#current-lock-for-student").html(overReadableLock); 
+                    $("#current-due-for-student").html(makeOverrideReadableDue(override)); 
+                    $("#current-lock-for-student").html(makeOverrideReadableLock(override)); 
                 }
                 else{
                     $("#current-due-for-student").html(makeReadableDue(assignment));
@@ -133,6 +127,22 @@ async function updateDate(){
             }
         }
     }
+}
+
+async function extendAssignment(override: AssignmentOverride, newDate : string){
+
+}
+
+function makeOverrideReadableDue(override: AssignmentOverride){
+    let overSplitDue = override.due_at.split("T");
+    let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
+    return overReadableDue;
+}
+
+function makeOverrideReadableLock(override: AssignmentOverride){
+    let overSplitLock = override.lock_at.split("T");
+    let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
+    return overReadableLock;
 }
 
 function makeReadableDue(assignment: Assignment){
