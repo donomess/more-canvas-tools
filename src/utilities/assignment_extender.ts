@@ -130,7 +130,15 @@ async function updateDate(){
 }
 
 async function extendAssignment(override: AssignmentOverride, newDate : string){
-
+    //Case where an override doesn't exist - do a post.
+    if(!override.lock_at){
+        //await $.post(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`)
+    }
+    //Case where override DOES exist - do a put.
+    else if(override.lock_at){
+        //await $.put(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${getOverrideId()}`)
+        //Get override id needs to be made. 
+    }
 }
 
 function makeOverrideReadableDue(override: AssignmentOverride){
