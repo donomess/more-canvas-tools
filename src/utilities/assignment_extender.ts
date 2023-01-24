@@ -1,6 +1,7 @@
 import { startDialog } from "~src/canvas/dialog";
 import { getAll, getBaseCourseUrl, getAssignmentId} from "../canvas/settings";
 import {User, Assignment, AssignmentOverride} from "../canvas/interfaces";
+import { extend } from "jquery";
 
 /*Top-level DOM */
 const ASSIGNMENT_EXTENDER_DIALOGUE = `
@@ -52,7 +53,7 @@ const SELECT_NEW_DATE = `
 
 const EXTEND_BUTTON = `
 <div class="extend-assignment">
-    <button id="extend" type="button">Extend Assignment!</button>
+    <button id="extend-now" type="button">Extend Assignment!</button>
 </div>
 `;
 
@@ -78,11 +79,20 @@ export function loadExtenderButton(){
             updateNewTime();
             generateNewDueDate();
         });
+        $("#extend-now").on("click", async function(){
+            extendAssignment(await getOverride(), generateNewDueDate());
+            updateStatus("Extended assignment for this user.");
+        })
     });
 }
 
 function updateStatus(message: string){
     $("#assignment-extender-status").html(message);
+}
+
+async function getOverride(){
+    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
+    return override;
 }
 
 // Gets all students enrolled in the current class.
