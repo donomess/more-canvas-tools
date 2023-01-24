@@ -129,14 +129,16 @@ async function updateDate(){
 }
 
 async function extendAssignment(override: AssignmentOverride, newDate : string){
+    let selid = $("#actual-dropdown").find('option:selected').attr('id');
+
     //Case where an override doesn't exist - do a post.
     if(!override[0].lock_at){
-        //await $.post(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`, {})
+        await $.post(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`, 
+        {"[student_ids][]": selid, "[title]": "Assignment extension", "[lock_at]": newDate});
     }
     //Case where override DOES exist - do a put.
     else if(override[0].lock_at){
-        //await $.put(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${override[0].id}`, {})
-        //Grab override id from the param 
+        //await $.put(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${override[0].id}`, {}); 
     }
 }
 
