@@ -100,30 +100,29 @@ async function getStudents(){
 Logic essentially takes both an assignment and overrides for the assignment
 and decides what lock date needs to be presented. */
 async function updateDate(){
-    const students : User[] = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
-    let newstudents = students.map((student: User) => { return{ student : student, options: {"student_ids[]": student.id} } });
     let assignment: Assignment = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}`);
     let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
-    console.log(override);
+    let selid = $("#actual-dropdown").find('option:selected').attr('id');
 
     //If there are no overrides
-    if(!override.due_at && !override.lock_at){
+    if(!override[0].due_at && !override[0].lock_at){
+        console.log("No override found");
         $("#current-due-for-student").html(makeReadableDue(assignment));
         $("#current-lock-for-student").html(makeReadableLock(assignment));
     }
 
     //If there is an override
-    if(override.due_at || override.lock_at){
-        for(let astudent of newstudents){
-            for(let overrideStudentId of override.student_ids){
-                if(overrideStudentId === astudent.student.id){
-                    $("#current-due-for-student").html(makeOverrideReadableDue(override)); 
-                    $("#current-lock-for-student").html(makeOverrideReadableLock(override)); 
-                }
-                else{
-                    $("#current-due-for-student").html(makeReadableDue(assignment));
-                    $("#current-lock-for-student").html(makeReadableLock(assignment));
-                }
+    if(override[0].due_at || override[0].lock_at){
+        for(let overrideStudentId of override[0].student_ids!){
+            if(String(overrideStudentId) === selid){
+                console.log("Match found");
+                $("#current-due-for-student").html(makeOverrideReadableDue(override)); 
+                $("#current-lock-for-student").html(makeOverrideReadableLock(override)); 
+            }
+            else{
+                console.log("No student found");
+                $("#current-due-for-student").html(makeReadableDue(assignment));
+                $("#current-lock-for-student").html(makeReadableLock(assignment));
             }
         }
     }
@@ -131,24 +130,24 @@ async function updateDate(){
 
 async function extendAssignment(override: AssignmentOverride, newDate : string){
     //Case where an override doesn't exist - do a post.
-    if(!override.lock_at){
-        //await $.post(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`)
+    if(!override[0].lock_at){
+        //await $.post(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`, {})
     }
     //Case where override DOES exist - do a put.
-    else if(override.lock_at){
-        //await $.put(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${getOverrideId()}`)
-        //Get override id needs to be made. 
+    else if(override[0].lock_at){
+        //await $.put(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${override[0].id}`, {})
+        //Grab override id from the param 
     }
 }
 
 function makeOverrideReadableDue(override: AssignmentOverride){
-    let overSplitDue = override.due_at.split("T");
+    let overSplitDue = override[0].due_at!.split("T");
     let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
     return overReadableDue;
 }
 
 function makeOverrideReadableLock(override: AssignmentOverride){
-    let overSplitLock = override.lock_at.split("T");
+    let overSplitLock = override[0].lock_at!.split("T");
     let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
     return overReadableLock;
 }
