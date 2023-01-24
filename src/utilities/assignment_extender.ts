@@ -130,6 +130,7 @@ async function updateDate(){
 
 async function extendAssignment(override: AssignmentOverride, newDate : string){
     let selid = $("#actual-dropdown").find('option:selected').attr('id');
+    let data = {"[student_ids][]":selid, "[title]" : "Updated extension", "[lock_at]": newDate};
 
     //Case where an override doesn't exist - do a post.
     if(!override[0].lock_at){
@@ -137,8 +138,19 @@ async function extendAssignment(override: AssignmentOverride, newDate : string){
         {"[student_ids][]": selid, "[title]": "Assignment extension", "[lock_at]": newDate});
     }
     //Case where override DOES exist - do a put.
-    else if(override[0].lock_at){
-        //await $.put(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${override[0].id}`, {}); 
+    else if(override[0].lock_at){ 
+        $.ajax({
+            type: 'PUT',
+            url: '${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${override[0].id}',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+        }).done(function (){
+            console.log("Successfully updated!");
+        }).fail(function (){
+            console.log("Put failed.");
+        }).always(function (){
+            console.log("There was an attempt to put.");
+        });
     }
 }
 
