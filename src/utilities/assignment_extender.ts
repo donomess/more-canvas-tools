@@ -70,6 +70,7 @@ export function loadExtenderButton(){
         $("#extend-button").html(EXTEND_BUTTON);
         $("#actual-dropdown").on("change", function(){
             updateDate();
+            updateStatus("Selecting options")
         });
         $("#new-date").on("change", function(){
             updateNewDate();
