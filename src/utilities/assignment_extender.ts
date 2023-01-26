@@ -135,7 +135,7 @@ async function updateDate(){
 async function extendAssignment(newDate : string){
     let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
     let selid = $("#actual-dropdown").find('option:selected').attr('id');
-    let data = {"[student_ids][]":selid, "[title]" : "Updated extension", "[lock_at]": newDate};
+    let data = [{"[student_ids][]":selid, "[title]" : "Updated extension", "[lock_at]": newDate}];
 
     //Case where an override doesn't exist - do a post.
     if(!override.length){
