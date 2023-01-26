@@ -74,14 +74,12 @@ export function loadExtenderButton(){
         });
         $("#new-date").on("change", function(){
             updateNewDate();
-            generateNewDueDate();
         });
         $("#new-time").on("change", function(){
             updateNewTime();
-            generateNewDueDate();
         });
-        $("#extend-now").on("click", async function(){
-            extendAssignment(await getOverride(), generateNewDueDate());
+        $("#extend-now").on("click", function(){
+            extendAssignment(generateNewDueDate());
             updateStatus("Extended assignment for this user.");
         })
     });
@@ -91,15 +89,10 @@ function updateStatus(message: string){
     $("#assignment-extender-status").html(message);
 }
 
-async function getOverride(){
-    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
-    return override;
-}
-
 // Gets all students enrolled in the current class.
 async function getStudents(){
     const studentList : User[] = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
-    let newstudents = studentList.map((student: User) => { return{ student : student, options: {"student_ids[]": student.id} } });
+    let newstudents = studentList.map((student: User) => { return{ student : student, options: {"student_ids[]": student.id} } } );
     for (let astudent of newstudents){
         $("#actual-dropdown").append($(`<option id=${astudent.student.id}>${astudent.student.name}<option>`))
     }   
@@ -116,14 +109,14 @@ async function updateDate(){
     let selid = $("#actual-dropdown").find('option:selected').attr('id');
 
     //If there are no overrides
-    if(!override[0].due_at && !override[0].lock_at){
+    if(!override.length){
         console.log("No override found");
         $("#current-due-for-student").html(makeReadableDue(assignment));
         $("#current-lock-for-student").html(makeReadableLock(assignment));
     }
 
     //If there is an override
-    if(override[0].due_at || override[0].lock_at){
+    if(override.length > 0){
         for(let overrideStudentId of override[0].student_ids!){
             if(String(overrideStudentId) === selid){
                 console.log("Match found");
@@ -139,17 +132,25 @@ async function updateDate(){
     }
 }
 
-async function extendAssignment(override: AssignmentOverride, newDate : string){
+async function extendAssignment(newDate : string){
+    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
     let selid = $("#actual-dropdown").find('option:selected').attr('id');
     let data = {"[student_ids][]":selid, "[title]" : "Updated extension", "[lock_at]": newDate};
 
     //Case where an override doesn't exist - do a post.
-    if(!override[0].lock_at){
+    if(!override.length){
         await $.post(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`, 
-        {"[student_ids][]": selid, "[title]": "Assignment extension", "[lock_at]": newDate});
+        {"[student_ids][]": selid, "[title]": "Assignment extension", "[lock_at]": newDate
+        }).done(function (){
+            console.log("Successfully posted: "+ data);
+        }).fail(function (){
+            console.log("Failed to post: " + data);
+        }).always(function (){
+            console.log("Attempted to post.");
+        });
     }
     //Case where override DOES exist - do a put.
-    else if(override[0].lock_at){ 
+    else if(override.length > 0){ 
         $.ajax({
             type: 'PUT',
             url: '${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${override[0].id}',
