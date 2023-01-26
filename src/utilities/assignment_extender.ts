@@ -1,7 +1,7 @@
 import { startDialog } from "~src/canvas/dialog";
-import { getAll, getBaseCourseUrl, getAssignmentId} from "../canvas/settings";
+import { getAll, getBaseCourseUrl, getAssignmentId, getBaseApiUrl, getCourseId, getBaseAssignmentUrl} from "../canvas/settings";
 import {User, Assignment, AssignmentOverride} from "../canvas/interfaces";
-import { extend } from "jquery";
+import { isPropertyDeclaration } from "typescript";
 
 /*Top-level DOM */
 const ASSIGNMENT_EXTENDER_DIALOGUE = `
@@ -63,6 +63,7 @@ export function loadExtenderButton(){
     $("#sidebar_content").append($(ASSIGNMENT_EXTENDER_BUTTON));
     $("#assgn-extend-load").click(() => {
         getStudents();
+        console.log(getBaseApiUrl);
         startDialog("Easy Assignment Extender", ASSIGNMENT_EXTENDER_DIALOGUE);
         $("#select-student").html(SELECT_STUDENT);
         $("#show-deadline").html(DISPLAY_DEADLINE);
@@ -105,7 +106,7 @@ Logic essentially takes both an assignment and overrides for the assignment
 and decides what lock date needs to be presented. */
 async function updateDate(){
     let assignment: Assignment = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}`);
-    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
+    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
     let selid = $("#actual-dropdown").find('option:selected').attr('id');
 
     //If there are no overrides
@@ -132,37 +133,30 @@ async function updateDate(){
     }
 }
 
-async function extendAssignment(newDate : string){
-    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`);
-    let selid = $("#actual-dropdown").find('option:selected').attr('id');
-    let data = [{"[student_ids][]":selid, "[title]" : "Updated extension", "[lock_at]": newDate}];
+async function put(endpoint : string, parameters : any) {
+    let url = `${getBaseApiUrl}/courses/${getCourseId}/assignments/${getAssignmentId()}/overrides/${endpoint}`;
+    return await $.ajax({ url,
+        type: 'PUT',
+        data: "" + new URLSearchParams(parameters)
+    });
+}
+async function post(parameters: any) {
+    let url = `${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`;
+    return await $.post(url, parameters);
+}
 
+async function extendAssignment(newDate : string){
+    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
+    let selid = $("#actual-dropdown").find('option:selected').attr('id');
+    let data = JSON.stringify({'assignment_override[student_ids][]':selid, 'assignment_override[title]' : "Updated extension", 'assignment_override[lock_at]': newDate});
     //Case where an override doesn't exist - do a post.
     if(!override.length){
-        await $.post(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides`, 
-        {"[student_ids][]": selid, "[title]": "Assignment extension", "[lock_at]": newDate
-        }).done(function (){
-            console.log("Successfully posted: "+ data);
-        }).fail(function (){
-            console.log("Failed to post: " + data);
-        }).always(function (){
-            console.log("Attempted to post.");
-        });
+        await post(data);
     }
     //Case where override DOES exist - do a put.
     else if(override.length > 0){ 
-        $.ajax({
-            type: 'PUT',
-            url: '${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${override[0].id}',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-        }).done(function (){
-            console.log("Successfully updated!");
-        }).fail(function (){
-            console.log("Put failed.");
-        }).always(function (){
-            console.log("There was an attempt to put.");
-        });
+        console.log(override, override[0].id);
+        await put(String(override[0].id), data);
     }
 }
 
