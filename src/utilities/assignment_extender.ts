@@ -124,7 +124,7 @@ async function updateDate(){
             if(String(overrideStudentId) === selid){
                 console.log("Match found");
                 $("#current-due-for-student").html(makeOverrideReadableDue(override, assignment)); 
-                $("#current-lock-for-student").html(makeOverrideReadableLock(override)); 
+                $("#current-lock-for-student").html(makeOverrideReadableLock(override, assignment)); 
             }
             else{
                 console.log("No student found");
@@ -163,7 +163,6 @@ async function extendAssignment(newDate : string){
 }
 
 function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Assignment){
-    console.log(override);
     if(override[0].due_at){
         let overSplitDue = override[0].due_at!.split("T");
         let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
@@ -174,10 +173,16 @@ function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Ass
     }
 }
 
-function makeOverrideReadableLock(override: AssignmentOverride[]){
-    let overSplitLock = override[0].lock_at!.split("T");
-    let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
-    return overReadableLock;
+function makeOverrideReadableLock(override: AssignmentOverride[], assignment : Assignment){
+    if(override[0].lock_at){
+        let overSplitLock = override[0].lock_at!.split("T");
+        let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
+        return overReadableLock;
+    }
+    else{
+        return makeReadableLock(assignment);
+    }
+
 }
 
 function makeReadableDue(assignment: Assignment){
