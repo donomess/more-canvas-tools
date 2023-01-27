@@ -93,9 +93,11 @@ function updateStatus(message: string){
 // Gets all students enrolled in the current class.
 async function getStudents(){
     const studentList : User[] = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
-    let newstudents = studentList.map((student: User) => { return{ student : student, options: {"student_ids[]": student.id} } } );
+    let newstudents = studentList.map((student: User) => { return{ student : student } } );
     for (let astudent of newstudents){
-        $("#actual-dropdown").append($(`<option id=${astudent.student.id}>${astudent.student.name}<option>`))
+        let opt = new Option( astudent.student.name, String(astudent.student.id) );
+        $(opt).html(opt.text)
+        $("#actual-dropdown").append(opt)
     }   
     return studentList;
     
@@ -107,7 +109,7 @@ and decides what lock date needs to be presented. */
 async function updateDate(){
     let assignment: Assignment = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}`);
     let override: AssignmentOverride[] = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
-    let selid = $("#actual-dropdown").find('option:selected').attr('id');
+    let selid = $("#actual-dropdown").find('option:selected').attr('value');
 
     //If there are no overrides
     if(!override.length){
@@ -133,8 +135,8 @@ async function updateDate(){
     }
 }
 
-async function put(endpoint : string, parameters : any) {
-    let url = `${getBaseApiUrl}/courses/${getCourseId}/assignments/${getAssignmentId()}/overrides/${endpoint}`;
+async function put(endpoint : string | number, parameters : any) {
+    let url = `${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/${endpoint}`;
     return await $.ajax({ url,
         type: 'PUT',
         data: "" + new URLSearchParams(parameters)
@@ -147,7 +149,7 @@ async function post(parameters: any) {
 
 async function extendAssignment(newDate : string){
     let override: AssignmentOverride[] = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
-    let selid = $("#actual-dropdown").find('option:selected').attr('id');
+    let selid = $("#actual-dropdown").find('option:selected').attr('value');
     let data = {'assignment_override[student_ids][]':selid, 'assignment_override[title]' : "Updated extension", 'assignment_override[lock_at]': newDate};
     //Case where an override doesn't exist - do a post.
     if(!override.length){
@@ -156,11 +158,12 @@ async function extendAssignment(newDate : string){
     //Case where override DOES exist - do a put.
     else if(override.length > 0){ 
         console.log(override, override[0].id);
-        await put(String(override[0].id), data);
+        await put(override[0].id!, data);
     }
 }
 
 function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Assignment){
+    console.log(override);
     if(override[0].due_at){
         let overSplitDue = override[0].due_at!.split("T");
         let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
