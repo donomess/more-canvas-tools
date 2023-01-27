@@ -13,17 +13,17 @@ export type Assignment = {
     lock_at: String
 }
 
-export type AssignmentOverride = [{
-  all_day: boolean | null, // [0]
-  all_day_date: string | null, // [1]
-  assignment_id: number | null, // [2]
-  due_at: string | null, // [3]
-  id: number | null, //[4]
-  lock_at : string | null, // [5]
-  student_ids : number[] | null, //[6]
-  title: string | null, //[7]
-  unlock_at: string | null //[8]
-}]
+export type AssignmentOverride = {
+  all_day: boolean | null,
+  all_day_date: string | null, 
+  assignment_id: number | null, 
+  due_at: string | null, 
+  id: number | null, 
+  lock_at : string | null, 
+  student_ids : number[] | null, 
+  title: string | null, 
+  unlock_at: string | null 
+}
 
 export enum WorkflowState {
     submitted = "submitted",

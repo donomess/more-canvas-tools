@@ -106,7 +106,7 @@ Logic essentially takes both an assignment and overrides for the assignment
 and decides what lock date needs to be presented. */
 async function updateDate(){
     let assignment: Assignment = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}`);
-    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
+    let override: AssignmentOverride[] = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
     let selid = $("#actual-dropdown").find('option:selected').attr('id');
 
     //If there are no overrides
@@ -121,7 +121,7 @@ async function updateDate(){
         for(let overrideStudentId of override[0].student_ids!){
             if(String(overrideStudentId) === selid){
                 console.log("Match found");
-                $("#current-due-for-student").html(makeOverrideReadableDue(override)); 
+                $("#current-due-for-student").html(makeOverrideReadableDue(override, assignment)); 
                 $("#current-lock-for-student").html(makeOverrideReadableLock(override)); 
             }
             else{
@@ -146,9 +146,9 @@ async function post(parameters: any) {
 }
 
 async function extendAssignment(newDate : string){
-    let override: AssignmentOverride = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
+    let override: AssignmentOverride[] = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
     let selid = $("#actual-dropdown").find('option:selected').attr('id');
-    let data = JSON.stringify({'assignment_override[student_ids][]':selid, 'assignment_override[title]' : "Updated extension", 'assignment_override[lock_at]': newDate});
+    let data = {'assignment_override[student_ids][]':selid, 'assignment_override[title]' : "Updated extension", 'assignment_override[lock_at]': newDate};
     //Case where an override doesn't exist - do a post.
     if(!override.length){
         await post(data);
@@ -160,13 +160,18 @@ async function extendAssignment(newDate : string){
     }
 }
 
-function makeOverrideReadableDue(override: AssignmentOverride){
-    let overSplitDue = override[0].due_at!.split("T");
-    let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
-    return overReadableDue;
+function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Assignment){
+    if(override[0].due_at){
+        let overSplitDue = override[0].due_at!.split("T");
+        let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
+        return overReadableDue;
+    }
+    else{
+        return makeReadableDue(assignment);
+    }
 }
 
-function makeOverrideReadableLock(override: AssignmentOverride){
+function makeOverrideReadableLock(override: AssignmentOverride[]){
     let overSplitLock = override[0].lock_at!.split("T");
     let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
     return overReadableLock;
