@@ -20,6 +20,7 @@
     "app-root-path": "^3.0.0",
     "gh-pages": "^4.0.0",
     "jszip": "^3.10.0",
+    "luxon": "^3.2.1",
     "rimraf": "^3.0.2",
     "ts-preferences": "^2.0.0",
     "typescript": "^3.7.4",

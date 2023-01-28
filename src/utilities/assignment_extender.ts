@@ -1,7 +1,10 @@
 import { startDialog } from "~src/canvas/dialog";
 import { getAll, getBaseCourseUrl, getAssignmentId, getBaseApiUrl, getCourseId, getBaseAssignmentUrl} from "../canvas/settings";
 import {User, Assignment, AssignmentOverride} from "../canvas/interfaces";
-import { isPropertyDeclaration } from "typescript";
+
+//Global const for Luxon library.
+const { DateTime } = require("luxon");
+let dt = DateTime.now();
 
 /*Top-level DOM */
 const ASSIGNMENT_EXTENDER_DIALOGUE = `
@@ -28,6 +31,7 @@ const SELECT_STUDENT = `
 <div class="select-student">
     <label class="dropdown" id="select">Select Student</label>
     <select id="actual-dropdown" class="student-list">
+        <option id="placeholder">Select a Student</option>
     </select>
 </div>
 <script>
@@ -164,14 +168,22 @@ async function extendAssignment(newDate : string){
     let override: AssignmentOverride[] = await $.get(`${getBaseCourseUrl()}/assignments/${getAssignmentId()}/overrides/`);
     let selid = $("#actual-dropdown").find('option:selected').attr('value');
     let data = {'assignment_override[student_ids][]':selid, 'assignment_override[title]' : "Updated extension", 'assignment_override[lock_at]': newDate};
+    let didput = false;
     //Case where an override doesn't exist - do a post.
     if(!override.length){
         await post(data);
     }
-    //Case where override DOES exist - do a put.
+    //Case where override DOES exist - do a put, or if new student, do a POST.
     else if(override.length > 0){ 
-        console.log(override, override[0].id);
-        await put(override[0].id!, data);
+        for(let overrideStudentId of override[0].student_ids!){
+            if(String(overrideStudentId) === selid){
+                console.log(override, override[0].id);
+                await put(override[0].id!, data);
+            }
+        }
+        if(!didput){
+            await post(data);
+        }
     }
 }
 
@@ -230,22 +242,22 @@ function updateNewTime(){
 }
 
 function tonightButton(){
-    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-date")).value = dt.toISODate();
     (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
 }
 
 function tmrnightButton(){
-    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-date")).value = dt.plus({days: 1}).toISODate();
     (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
 }
 
 function threeDaysButton(){
-    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-date")).value = dt.plus({days: 3}).toISODate();
     (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
 }
 
 function oneWeekButton(){
-    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-date")).value = dt.plus({days: 7}).toISODate();
     (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
 }
 
