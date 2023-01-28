@@ -48,6 +48,8 @@ const DISPLAY_DEADLINE = `
 const SELECT_NEW_DATE = `
 <div class="select-extension-date">
     Extend assignment to: <input id="new-date" type="date">  at:  <input id="new-time" type="time">
+    Or, quick dates: <button id="tonight" type="button">Tonight</button> <button id="tmrnight" type="button">Tomorrow Night</button> <button id="treday" type="button">Three Days</button> <button id="week" type="button">One Week</button>
+
 </div>
 `;
 
@@ -63,7 +65,6 @@ export function loadExtenderButton(){
     $("#sidebar_content").append($(ASSIGNMENT_EXTENDER_BUTTON));
     $("#assgn-extend-load").click(() => {
         getStudents();
-        console.log(getBaseApiUrl);
         startDialog("Easy Assignment Extender", ASSIGNMENT_EXTENDER_DIALOGUE);
         $("#select-student").html(SELECT_STUDENT);
         $("#show-deadline").html(DISPLAY_DEADLINE);
@@ -82,7 +83,19 @@ export function loadExtenderButton(){
         $("#extend-now").on("click", function(){
             extendAssignment(generateNewDueDate());
             updateStatus("Extended assignment for this user.");
-        })
+        });
+        $("#tonight").on("click", function(){
+            tonightButton();
+        });
+        $("#tmrnight").on("click", function(){
+            tmrnightButton();
+        });
+        $("#treday").on("click", function(){
+            threeDaysButton();
+        });
+        $("#week").on("click", function(){
+            oneWeekButton();
+        });
     });
 }
 
@@ -113,9 +126,9 @@ async function updateDate(){
 
     //If there are no overrides
     if(!override.length){
-        console.log("No override found");
-        $("#current-due-for-student").html(makeReadableDue(assignment));
-        $("#current-lock-for-student").html(makeReadableLock(assignment));
+        //console.log("No override found");
+        $("#current-due-for-student").text(makeReadableDue(assignment));
+        $("#current-lock-for-student").text(makeReadableLock(assignment));
     }
 
     //If there is an override
@@ -123,13 +136,13 @@ async function updateDate(){
         for(let overrideStudentId of override[0].student_ids!){
             if(String(overrideStudentId) === selid){
                 console.log("Match found");
-                $("#current-due-for-student").html(makeOverrideReadableDue(override, assignment)); 
-                $("#current-lock-for-student").html(makeOverrideReadableLock(override, assignment)); 
+                $("#current-due-for-student").text(makeOverrideReadableDue(override, assignment)); 
+                $("#current-lock-for-student").text(makeOverrideReadableLock(override, assignment)); 
             }
             else{
                 console.log("No student found");
-                $("#current-due-for-student").html(makeReadableDue(assignment));
-                $("#current-lock-for-student").html(makeReadableLock(assignment));
+                $("#current-due-for-student").text(makeReadableDue(assignment));
+                $("#current-lock-for-student").text(makeReadableLock(assignment));
             }
         }
     }
@@ -164,7 +177,10 @@ async function extendAssignment(newDate : string){
 
 function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Assignment){
     if(override[0].due_at){
-        let overSplitDue = override[0].due_at!.split("T");
+        let local = override[0].due_at.toLocaleString();
+        console.log(override[0].due_at)
+        console.log(local);
+        let overSplitDue = local.split("T");
         let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
         return overReadableDue;
     }
@@ -175,7 +191,11 @@ function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Ass
 
 function makeOverrideReadableLock(override: AssignmentOverride[], assignment : Assignment){
     if(override[0].lock_at){
-        let overSplitLock = override[0].lock_at!.split("T");
+        let local = override[0].lock_at.toLocaleString();
+        console.log(override)
+        console.log("Lock at native: " + override[0].lock_at)
+        console.log("Lock at localised: " + local);
+        let overSplitLock = local.split("T");
         let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
         return overReadableLock;
     }
@@ -186,13 +206,15 @@ function makeOverrideReadableLock(override: AssignmentOverride[], assignment : A
 }
 
 function makeReadableDue(assignment: Assignment){
-    let splitDue = assignment.due_at.split("T");
+    let local = assignment.due_at.toLocaleString();
+    let splitDue = local.split("T");
     let readableDue = splitDue[0] + " at " +  splitDue[1].slice(0,-1);
     return readableDue;
 }
 
 function makeReadableLock(assignment: Assignment){
-    let splitLock = assignment.lock_at.split("T");
+    let local = assignment.lock_at.toLocaleString();
+    let splitLock = local.split("T");
     let readableLock = splitLock[0] + " at " +  splitLock[1].slice(0,-1);
     return readableLock;
 }
@@ -207,9 +229,28 @@ function updateNewTime(){
     return newtime;
 }
 
+function tonightButton(){
+    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
+}
+
+function tmrnightButton(){
+    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
+}
+
+function threeDaysButton(){
+    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
+}
+
+function oneWeekButton(){
+    (<HTMLInputElement> document.getElementById("new-date")).value = "blah";
+    (<HTMLInputElement> document.getElementById("new-time")).value = "23:59";
+}
+
 /* This date is formatted to be used as input for a new override for a 
 due/lock date. */
 function generateNewDueDate(){
-    console.log(updateNewDate() + "T" + updateNewTime() + ":00-06:00");
     return(updateNewDate() + "T" + updateNewTime() + ":00-06:00");
 }
