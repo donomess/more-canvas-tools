@@ -130,7 +130,6 @@ async function updateDate(){
 
     //If there are no overrides
     if(!override.length){
-        //console.log("No override found");
         $("#current-due-for-student").text(makeReadableDue(assignment));
         $("#current-lock-for-student").text(makeReadableLock(assignment));
     }
@@ -140,18 +139,11 @@ async function updateDate(){
         for(let aoverride of override){
             for(let astudent of aoverride.student_ids!){
                 if(astudent === Number(selid)){
-                    console.log("Match found");
-                    console.log(override);
-                    //$("#current-due-for-student").text(makeOverrideReadableDue(override, assignment)); 
                     document.getElementById("current-due-for-student")!.innerText = makeOverrideReadableDue(override, assignment)!;
-                    //$("#current-lock-for-student").text(makeOverrideReadableLock(override, assignment)); 
                     document.getElementById("current-lock-for-student")!.innerText = makeOverrideReadableLock(override,assignment)!;
                 }
                 else{
-                    console.log("No student found");
-                    //$("#current-due-for-student").text(makeReadableDue(assignment));
                     document.getElementById("current-due-for-student")!.innerText = makeReadableDue(assignment);
-                    //$("#current-lock-for-student").text(makeReadableLock(assignment));
                     document.getElementById("current-lock-for-student")!.innerText = makeReadableLock(assignment);
                 }
             }
