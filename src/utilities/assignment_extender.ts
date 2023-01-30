@@ -140,13 +140,18 @@ async function updateDate(){
         for(let overrideStudentId of override[0].student_ids!){
             if(String(overrideStudentId) === selid){
                 console.log("Match found");
-                $("#current-due-for-student").text(makeOverrideReadableDue(override, assignment)); 
-                $("#current-lock-for-student").text(makeOverrideReadableLock(override, assignment)); 
+                console.log(override);
+                //$("#current-due-for-student").text(makeOverrideReadableDue(override, assignment)); 
+                document.getElementById("current-due-for-student")!.innerText = makeOverrideReadableDue(override, assignment)!;
+                //$("#current-lock-for-student").text(makeOverrideReadableLock(override, assignment)); 
+                document.getElementById("current-lock-for-student")!.innerText = makeOverrideReadableLock(override,assignment)!;
             }
             else{
                 console.log("No student found");
-                $("#current-due-for-student").text(makeReadableDue(assignment));
-                $("#current-lock-for-student").text(makeReadableLock(assignment));
+                //$("#current-due-for-student").text(makeReadableDue(assignment));
+                document.getElementById("current-due-for-student")!.innerText = makeReadableDue(assignment);
+                //$("#current-lock-for-student").text(makeReadableLock(assignment));
+                document.getElementById("current-lock-for-student")!.innerText = makeReadableLock(assignment);
             }
         }
     }
@@ -173,7 +178,7 @@ async function extendAssignment(newDate : string){
     if(!override.length){
         await post(data);
     }
-    //Case where override DOES exist - do a put, or if new student, do a POST.
+    //Case where override DOES exist - do a put, or if new student, do a put with a new.
     else if(override.length > 0){ 
         for(let overrideStudentId of override[0].student_ids!){
             if(String(overrideStudentId) === selid){
@@ -188,30 +193,41 @@ async function extendAssignment(newDate : string){
 }
 
 function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Assignment){
-    if(override[0].due_at){
-        let local = override[0].due_at.toLocaleString();
-        console.log(override[0].due_at)
-        console.log(local);
-        let overSplitDue = local.split("T");
-        let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
-        return overReadableDue;
+    let selid = $("#actual-dropdown").find('option:selected').attr('value');
+    let found = false;
+    for(let aoverride of override){
+        for(let astudent of aoverride.student_ids!){
+            if(astudent === Number(selid) && aoverride.due_at){
+                let local = aoverride.due_at!.toLocaleString();
+                console.log("override due: " + local);
+                let overSplitDue = local.split("T");
+                let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
+                found = true;
+                return overReadableDue;
+            }
+        }
     }
-    else{
+    if(!found){
         return makeReadableDue(assignment);
     }
 }
 
 function makeOverrideReadableLock(override: AssignmentOverride[], assignment : Assignment){
-    if(override[0].lock_at){
-        let local = override[0].lock_at.toLocaleString();
-        console.log(override)
-        console.log("Lock at native: " + override[0].lock_at)
-        console.log("Lock at localised: " + local);
-        let overSplitLock = local.split("T");
-        let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
-        return overReadableLock;
+    let selid = $("#actual-dropdown").find('option:selected').attr('value');
+    let found = false;
+    for(let aoveride of override){
+        for(let astudent of aoveride.student_ids!){
+            if(astudent === Number(selid)){
+                let local = aoveride.lock_at!.toLocaleString();
+                console.log("override lock: " + local);
+                let overSplitLock = local.split("T");
+                let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
+                found = true;
+                return overReadableLock;
+            }
+        }
     }
-    else{
+    if(!found){
         return makeReadableLock(assignment);
     }
 
