@@ -137,21 +137,23 @@ async function updateDate(){
 
     //If there is an override
     if(override.length > 0){
-        for(let overrideStudentId of override[0].student_ids!){
-            if(String(overrideStudentId) === selid){
-                console.log("Match found");
-                console.log(override);
-                //$("#current-due-for-student").text(makeOverrideReadableDue(override, assignment)); 
-                document.getElementById("current-due-for-student")!.innerText = makeOverrideReadableDue(override, assignment)!;
-                //$("#current-lock-for-student").text(makeOverrideReadableLock(override, assignment)); 
-                document.getElementById("current-lock-for-student")!.innerText = makeOverrideReadableLock(override,assignment)!;
-            }
-            else{
-                console.log("No student found");
-                //$("#current-due-for-student").text(makeReadableDue(assignment));
-                document.getElementById("current-due-for-student")!.innerText = makeReadableDue(assignment);
-                //$("#current-lock-for-student").text(makeReadableLock(assignment));
-                document.getElementById("current-lock-for-student")!.innerText = makeReadableLock(assignment);
+        for(let aoverride of override){
+            for(let astudent of aoverride.student_ids!){
+                if(astudent === Number(selid)){
+                    console.log("Match found");
+                    console.log(override);
+                    //$("#current-due-for-student").text(makeOverrideReadableDue(override, assignment)); 
+                    document.getElementById("current-due-for-student")!.innerText = makeOverrideReadableDue(override, assignment)!;
+                    //$("#current-lock-for-student").text(makeOverrideReadableLock(override, assignment)); 
+                    document.getElementById("current-lock-for-student")!.innerText = makeOverrideReadableLock(override,assignment)!;
+                }
+                else{
+                    console.log("No student found");
+                    //$("#current-due-for-student").text(makeReadableDue(assignment));
+                    document.getElementById("current-due-for-student")!.innerText = makeReadableDue(assignment);
+                    //$("#current-lock-for-student").text(makeReadableLock(assignment));
+                    document.getElementById("current-lock-for-student")!.innerText = makeReadableLock(assignment);
+                }
             }
         }
     }
