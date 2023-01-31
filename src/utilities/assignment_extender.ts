@@ -1,4 +1,4 @@
-import { startDialog } from "~src/canvas/dialog";
+import { loadDialog, startDialog } from "~src/canvas/dialog";
 import { getAll, getBaseCourseUrl, getAssignmentId, getBaseApiUrl, getCourseId, getBaseAssignmentUrl} from "../canvas/settings";
 import {User, Assignment, AssignmentOverride} from "../canvas/interfaces";
 
@@ -174,11 +174,14 @@ async function extendAssignment(newDate : string){
     }
     //Case where override DOES exist - do a put, or if new student, do a put with a new.
     else if(override.length > 0){ 
-        for(let overrideStudentId of override[0].student_ids!){
-            if(String(overrideStudentId) === selid){
-                console.log(override, override[0].id);
-                await put(override[0].id!, data);
-            }
+        for(let aoveride of override){
+            for(let astudent of aoveride.student_ids!){
+                if(astudent === Number(selid)){
+                    console.log(override, override[0].id);
+                    didput = true;
+                    await put(override[0].id!, data);
+                }
+            } 
         }
         if(!didput){
             await post(data);
@@ -192,12 +195,12 @@ function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Ass
     for(let aoverride of override){
         for(let astudent of aoverride.student_ids!){
             if(astudent === Number(selid) && aoverride.due_at){
-                let local = aoverride.due_at!.toLocaleString();
-                console.log("override due: " + local);
-                let overSplitDue = local.split("T");
-                let overReadableDue = overSplitDue[0] + " at " +  overSplitDue[1].slice(0,-1);
                 found = true;
-                return overReadableDue;
+                let duestr = String(aoverride.due_at);
+                let duedate = new Date(duestr)
+                return(duedate.toLocaleString("en-US", {
+                    timeZone: "America/New_York"
+                }));
             }
         }
     }
@@ -212,12 +215,12 @@ function makeOverrideReadableLock(override: AssignmentOverride[], assignment : A
     for(let aoveride of override){
         for(let astudent of aoveride.student_ids!){
             if(astudent === Number(selid)){
-                let local = aoveride.lock_at!.toLocaleString();
-                console.log("override lock: " + local);
-                let overSplitLock = local.split("T");
-                let overReadableLock = overSplitLock[0] + " at " +  overSplitLock[1].slice(0,-1);
+                let lockstr = String(aoveride.lock_at);
+                let lockdate = new Date(lockstr);
                 found = true;
-                return overReadableLock;
+                return(lockdate.toLocaleString("en-US", {
+                    timeZone: "America/New_York"
+                }));
             }
         }
     }
@@ -228,17 +231,19 @@ function makeOverrideReadableLock(override: AssignmentOverride[], assignment : A
 }
 
 function makeReadableDue(assignment: Assignment){
-    let local = assignment.due_at.toLocaleString();
-    let splitDue = local.split("T");
-    let readableDue = splitDue[0] + " at " +  splitDue[1].slice(0,-1);
-    return readableDue;
+    let duestr = String(assignment.due_at);
+    let duedate = new Date(duestr)
+    return(duedate.toLocaleString("en-US", {
+        timeZone: "America/New_York"
+    }));
 }
 
 function makeReadableLock(assignment: Assignment){
-    let local = assignment.lock_at.toLocaleString();
-    let splitLock = local.split("T");
-    let readableLock = splitLock[0] + " at " +  splitLock[1].slice(0,-1);
-    return readableLock;
+    let lockstr = String(assignment.due_at);
+    let lockdate = new Date(lockstr)
+    return(lockdate.toLocaleString("en-US", {
+                    timeZone: "America/New_York"
+                }));
 }
 
 function updateNewDate(){
