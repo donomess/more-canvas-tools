@@ -112,7 +112,7 @@ async function getStudents(){
     const studentList : User[] = await getAll($.get, "users", { 'enrollment_type[]': 'student' });
     let newstudents = studentList.map((student: User) => { return{ student : student } } );
     for (let astudent of newstudents){
-        let opt = new Option( astudent.student.name, String(astudent.student.id) );
+        let opt = new Option( astudent.student.name, astudent.student.id.toString() );
         $(opt).html(opt.text)
         $("#actual-dropdown").append(opt)
     }   
@@ -194,13 +194,11 @@ function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Ass
     let found = false;
     for(let aoverride of override){
         for(let astudent of aoverride.student_ids!){
-            if(astudent === Number(selid) && aoverride.due_at){
+            if(astudent.toString() === selid && aoverride.due_at){
                 found = true;
-                let duestr = String(aoverride.due_at);
+                let duestr = aoverride.due_at.toString();
                 let duedate = new Date(duestr)
-                return(duedate.toLocaleString("en-US", {
-                    timeZone: "America/New_York"
-                }));
+                return(duedate.toLocaleString());
             }
         }
     }
@@ -215,12 +213,10 @@ function makeOverrideReadableLock(override: AssignmentOverride[], assignment : A
     for(let aoveride of override){
         for(let astudent of aoveride.student_ids!){
             if(astudent === Number(selid)){
-                let lockstr = String(aoveride.lock_at);
+                let lockstr = aoveride.lock_at!.toString();
                 let lockdate = new Date(lockstr);
                 found = true;
-                return(lockdate.toLocaleString("en-US", {
-                    timeZone: "America/New_York"
-                }));
+                return(lockdate.toLocaleString());
             }
         }
     }
@@ -231,19 +227,15 @@ function makeOverrideReadableLock(override: AssignmentOverride[], assignment : A
 }
 
 function makeReadableDue(assignment: Assignment){
-    let duestr = String(assignment.due_at);
+    let duestr = assignment.due_at.toString();
     let duedate = new Date(duestr)
-    return(duedate.toLocaleString("en-US", {
-        timeZone: "America/New_York"
-    }));
+    return(duedate.toLocaleString());
 }
 
 function makeReadableLock(assignment: Assignment){
-    let lockstr = String(assignment.due_at);
+    let lockstr = assignment.due_at.toString();
     let lockdate = new Date(lockstr)
-    return(lockdate.toLocaleString("en-US", {
-                    timeZone: "America/New_York"
-                }));
+    return(lockdate.toLocaleString());
 }
 
 function updateNewDate(){
@@ -279,5 +271,5 @@ function oneWeekButton(){
 /* This date is formatted to be used as input for a new override for a 
 due/lock date. */
 function generateNewDueDate(){
-    return(updateNewDate() + "T" + updateNewTime() + ":00-06:00");
+    return(updateNewDate() + "T" + updateNewTime() + ":00Z");
 }
