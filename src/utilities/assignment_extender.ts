@@ -139,13 +139,11 @@ async function updateDate(){
         for(let aoverride of override){
             for(let astudent of aoverride.student_ids!){
                 if(astudent.toString() === selid){
-                    console.log("Match found");
                     document.getElementById("current-due-for-student")!.innerText = makeOverrideReadableDue(aoverride, assignment)!;
                     document.getElementById("current-lock-for-student")!.innerText = makeOverrideReadableLock(aoverride,assignment)!;
-                    break;
+                    return;
                 }
                 else{
-                    console.log("No match found");
                     document.getElementById("current-due-for-student")!.innerText = makeReadableDue(assignment);
                     document.getElementById("current-lock-for-student")!.innerText = makeReadableLock(assignment);
                 }
@@ -213,15 +211,13 @@ function makeOverrideReadableLock(override: AssignmentOverride, assignment : Ass
     let found = false;
     for(let astudent of override.student_ids!){
         if(astudent.toString() === selid){
-            console.log(override);
-            console.log("override lock called");
             let lockstr = override.lock_at!.toString();
             let lockdate = new Date(lockstr);
             found = true;
             return(lockdate.toLocaleString());
         }
     }
-    if(found == false){
+    if(found === false){
         return makeReadableLock(assignment);
     }
 
@@ -234,7 +230,6 @@ function makeReadableDue(assignment: Assignment){
 }
 
 function makeReadableLock(assignment: Assignment){
-    console.log("assignment lock called");
     let lockstr = assignment.due_at.toString();
     let lockdate = new Date(lockstr)
     return(lockdate.toLocaleString());
