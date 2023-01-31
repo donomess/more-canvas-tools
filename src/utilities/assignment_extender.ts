@@ -138,11 +138,14 @@ async function updateDate(){
     if(override.length > 0){
         for(let aoverride of override){
             for(let astudent of aoverride.student_ids!){
-                if(astudent === Number(selid)){
-                    document.getElementById("current-due-for-student")!.innerText = makeOverrideReadableDue(override, assignment)!;
-                    document.getElementById("current-lock-for-student")!.innerText = makeOverrideReadableLock(override,assignment)!;
+                if(astudent.toString() === selid){
+                    console.log("Match found");
+                    document.getElementById("current-due-for-student")!.innerText = makeOverrideReadableDue(aoverride, assignment)!;
+                    document.getElementById("current-lock-for-student")!.innerText = makeOverrideReadableLock(aoverride,assignment)!;
+                    break;
                 }
                 else{
+                    console.log("No match found");
                     document.getElementById("current-due-for-student")!.innerText = makeReadableDue(assignment);
                     document.getElementById("current-lock-for-student")!.innerText = makeReadableLock(assignment);
                 }
@@ -189,17 +192,15 @@ async function extendAssignment(newDate : string){
     }
 }
 
-function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Assignment){
+function makeOverrideReadableDue(override: AssignmentOverride, assignment: Assignment){
     let selid = $("#actual-dropdown").find('option:selected').attr('value');
     let found = false;
-    for(let aoverride of override){
-        for(let astudent of aoverride.student_ids!){
-            if(astudent.toString() === selid && aoverride.due_at){
-                found = true;
-                let duestr = aoverride.due_at.toString();
-                let duedate = new Date(duestr)
-                return(duedate.toLocaleString());
-            }
+    for(let astudent of override.student_ids!){
+        if(astudent.toString() === selid && override.due_at){
+            found = true;
+            let duestr = override.due_at.toString();
+            let duedate = new Date(duestr)
+            return(duedate.toLocaleString());
         }
     }
     if(!found){
@@ -207,20 +208,20 @@ function makeOverrideReadableDue(override: AssignmentOverride[], assignment: Ass
     }
 }
 
-function makeOverrideReadableLock(override: AssignmentOverride[], assignment : Assignment){
+function makeOverrideReadableLock(override: AssignmentOverride, assignment : Assignment){
     let selid = $("#actual-dropdown").find('option:selected').attr('value');
     let found = false;
-    for(let aoveride of override){
-        for(let astudent of aoveride.student_ids!){
-            if(astudent === Number(selid)){
-                let lockstr = aoveride.lock_at!.toString();
-                let lockdate = new Date(lockstr);
-                found = true;
-                return(lockdate.toLocaleString());
-            }
+    for(let astudent of override.student_ids!){
+        if(astudent.toString() === selid){
+            console.log(override);
+            console.log("override lock called");
+            let lockstr = override.lock_at!.toString();
+            let lockdate = new Date(lockstr);
+            found = true;
+            return(lockdate.toLocaleString());
         }
     }
-    if(!found){
+    if(found == false){
         return makeReadableLock(assignment);
     }
 
@@ -233,6 +234,7 @@ function makeReadableDue(assignment: Assignment){
 }
 
 function makeReadableLock(assignment: Assignment){
+    console.log("assignment lock called");
     let lockstr = assignment.due_at.toString();
     let lockdate = new Date(lockstr)
     return(lockdate.toLocaleString());
@@ -271,5 +273,5 @@ function oneWeekButton(){
 /* This date is formatted to be used as input for a new override for a 
 due/lock date. */
 function generateNewDueDate(){
-    return(updateNewDate() + "T" + updateNewTime() + ":00Z");
+    return(updateNewDate() + "T" + updateNewTime() + ":00");
 }
