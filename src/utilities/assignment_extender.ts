@@ -1,6 +1,6 @@
-import { loadDialog, startDialog } from "~src/canvas/dialog";
-import { getAll, getBaseCourseUrl, getAssignmentId, getBaseApiUrl, getCourseId, getBaseAssignmentUrl} from "../canvas/settings";
-import {User, Assignment, AssignmentOverride} from "../canvas/interfaces";
+import { startDialog } from "~src/canvas/dialog";
+import { getAll, getBaseCourseUrl, getAssignmentId } from "../canvas/settings";
+import { User, Assignment, AssignmentOverride } from "../canvas/interfaces";
 
 //Global const for Luxon library.
 const { DateTime } = require("luxon");
@@ -217,7 +217,7 @@ function makeOverrideReadableLock(override: AssignmentOverride, assignment : Ass
             return(lockdate.toLocaleString());
         }
     }
-    if(found === false){
+    if(!found){
         return makeReadableLock(assignment);
     }
 
